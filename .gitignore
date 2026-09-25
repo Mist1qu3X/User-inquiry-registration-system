@@ -1,0 +1,21 @@
+# Виртуальные окружения
+.venv/
+venv/
+env/
+
+# Кэш Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Кэш инструментов
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Служебные файлы IDE / ОС
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
