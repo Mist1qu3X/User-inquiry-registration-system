@@ -13,6 +13,10 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
+# Локальные файлы базы данных (не относятся к проекту)
+*.db
+*.sqlite3
+
 # Служебные файлы IDE / ОС
 .idea/
 .vscode/
