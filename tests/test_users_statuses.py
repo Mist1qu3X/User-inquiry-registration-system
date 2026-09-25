@@ -1,4 +1,4 @@
-"""Тесты операций над пользователями и статусами (ПР2)."""
+"""Тесты операций над пользователями и статусами (ПР3, объектная модель)."""
 
 import os
 import sys
@@ -7,27 +7,28 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import statuses as statuses_module  # noqa: E402
 import users as users_module  # noqa: E402
+from models import Status, User  # noqa: E402
 
 
 def make_users():
     return [
-        {"id": 1, "name": "Иван Петров", "email": "ivan@example.com"},
-        {"id": 2, "name": "Мария Сидорова", "email": "maria@example.com"},
+        User(1, "Иван Петров", "ivan@example.com"),
+        User(2, "Мария Сидорова", "maria@example.com"),
     ]
 
 
 def make_statuses():
     return [
-        {"code": "new", "title": "Новое", "is_final": False},
-        {"code": "closed", "title": "Закрыто", "is_final": True},
+        Status("new", "Новое", False),
+        Status("closed", "Закрыто", True),
     ]
 
 
 def test_add_user_and_get_name():
     users = make_users()
     created = users_module.add_user(users, "Пётр Иванов", "P.Ivanov@Example.com")
-    assert created["id"] == 3
-    assert created["email"] == "p.ivanov@example.com"
+    assert created.id == 3
+    assert created.email == "p.ivanov@example.com"
     assert users_module.get_user_name(users, 3) == "Пётр Иванов"
 
 
@@ -44,7 +45,7 @@ def test_add_user_rejects_bad_email():
 def test_find_users_by_substring():
     users = make_users()
     found = users_module.find_users(users, "мария")
-    assert [user["id"] for user in found] == [2]
+    assert [user.id for user in found] == [2]
 
 
 def test_is_final_status():

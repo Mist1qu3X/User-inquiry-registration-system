@@ -1,4 +1,4 @@
-"""Тесты операций над обращениями (ПР1 и ПР2)."""
+"""Тесты операций над обращениями (ПР1 и ПР3, объектная модель)."""
 
 import os
 import sys
@@ -7,21 +7,24 @@ from datetime import date
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import inquiries as inquiries_module  # noqa: E402
+from models import Category, Inquiry, Status, User  # noqa: E402
+
+
+def make_refs():
+    tech = Category(1, "Ошибка", True)
+    billing = Category(2, "Оплата", True)
+    new = Status("new", "Новое", False)
+    closed = Status("closed", "Закрыто", True)
+    user = User(1, "Иван", "ivan@example.com")
+    return tech, billing, new, closed, user
 
 
 def make_inquiries():
+    tech, billing, new, closed, user = make_refs()
     return [
-        {
-            "id": 1, "subject": "Ошибка входа", "text": "",
-            "category_id": 1, "status_code": "new", "user_id": 1,
-            "created": "2026-09-20",
-        },
-        {
-            "id": 2, "subject": "Возврат средств", "text": "",
-            "category_id": 2, "status_code": "new", "user_id": 2,
-            "created": "2026-09-22",
-        },
-    ]
+        Inquiry(1, "Ошибка входа", "", tech, new, user, "2026-09-20"),
+        Inquiry(2, "Возврат средств", "", billing, new, user, "2026-09-22"),
+    ], (tech, billing, new, closed, user)
 
 
 # --- функции ПР1 ---------------------------------------------------------
@@ -45,33 +48,35 @@ def test_format_inquiry_card():
     assert card == "[25.09.2026] Тема — Иван (Новое)"
 
 
-# --- функции ПР2 ---------------------------------------------------------
+# --- функции ПР3 ---------------------------------------------------------
 
-def test_add_inquiry_assigns_id_and_status():
-    inquiries = make_inquiries()
+def test_add_inquiry_returns_object():
+    inquiries, (tech, _, new, _, user) = make_inquiries()
     created = inquiries_module.add_inquiry(
-        inquiries, "Новая тема", "текст", 1, 1,
+        inquiries, "Новая тема", "текст", tech, new, user,
     )
-    assert created["id"] == 3
-    assert created["status_code"] == "new"
+    assert isinstance(created, Inquiry)
+    assert created.id == 3
+    assert created.status is new
 
 
 def test_filter_inquiries_by_category():
-    inquiries = make_inquiries()
+    inquiries, _ = make_inquiries()
     selected = inquiries_module.filter_inquiries_by_category(inquiries, 1)
-    assert [item["id"] for item in selected] == [1]
+    assert [item.id for item in selected] == [1]
 
 
 def test_change_and_close_status():
-    inquiries = make_inquiries()
-    assert inquiries_module.change_status(inquiries, 1, "in_progress") is True
-    assert inquiries[0]["status_code"] == "in_progress"
-    assert inquiries_module.close_inquiry(inquiries, 1) is True
-    assert inquiries[0]["status_code"] == "closed"
-    assert inquiries_module.change_status(inquiries, 99, "closed") is False
+    inquiries, (_, _, new, closed, _) = make_inquiries()
+    in_progress = Status("in_progress", "В работе", False)
+    assert inquiries_module.change_status(inquiries, 1, in_progress) is True
+    assert inquiries[0].status is in_progress
+    assert inquiries_module.close_inquiry(inquiries, 1, closed) is True
+    assert inquiries[0].is_closed() is True
+    assert inquiries_module.change_status(inquiries, 99, closed) is False
 
 
 def test_sort_inquiries_by_date_newest_first():
-    inquiries = make_inquiries()
+    inquiries, _ = make_inquiries()
     ordered = inquiries_module.sort_inquiries_by_date(inquiries)
-    assert [item["id"] for item in ordered] == [2, 1]
+    assert [item.id for item in ordered] == [2, 1]

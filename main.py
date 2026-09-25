@@ -1,7 +1,7 @@
-"""Консольное меню системы регистрации обращений InquiryDesk (ПР2).
+"""Консольное меню системы регистрации обращений InquiryDesk (ПР3).
 
-Приложение загружает данные из JSON-файлов каталога ``data/``, предоставляет
-пользователю меню сценариев и сохраняет изменения обратно в JSON.
+Данные загружаются из JSON в объекты предметной модели, пользователь
+работает с ними через меню сценариев, изменения сохраняются обратно в JSON.
 """
 
 import categories as categories_module
@@ -12,39 +12,39 @@ import users as users_module
 from utils import input_int, input_text
 
 
-def print_inquiry(inquiry, users, categories, statuses) -> None:
+def print_inquiry(inquiry) -> None:
     """Вывести одно обращение в виде карточки."""
-    author = users_module.get_user_name(users, inquiry["user_id"])
-    category = categories_module.find_category(categories, inquiry["category_id"])
-    category_name = category["name"] if category else "—"
-    status = statuses_module.status_title(statuses, inquiry["status_code"])
-    print(f"  #{inquiry['id']} [{inquiry['created']}] {inquiry['subject']}")
-    print(f"      автор: {author} | категория: {category_name} | статус: {status}")
+    category_name = inquiry.category.name if inquiry.category else "—"
+    author_name = inquiry.author.name if inquiry.author else "—"
+    status_title = inquiry.status.title if inquiry.status else "—"
+    print(f"  #{inquiry.id} [{inquiry.created}] {inquiry.subject}")
+    print(f"      автор: {author_name} | категория: {category_name} | "
+          f"статус: {status_title}")
 
 
-def show_inquiries(inquiries, users, categories, statuses) -> None:
+def show_inquiries(inquiries) -> None:
     """Показать все обращения, отсортированные по дате (сначала новые)."""
     if not inquiries:
         print("Обращений пока нет.")
         return
     print("Список обращений:")
     for inquiry in inquiries_module.sort_inquiries_by_date(inquiries):
-        print_inquiry(inquiry, users, categories, statuses)
+        print_inquiry(inquiry)
 
 
 def show_categories(categories) -> None:
     """Показать доступные категории."""
     print("Категории:")
     for category in categories_module.sort_categories(categories):
-        mark = "активна" if category["is_active"] else "скрыта"
-        print(f"  {category['id']}. {category['name']} ({mark})")
+        print(f"  {category}")
 
 
 def register_inquiry(inquiries, users, categories, statuses) -> None:
     """Сценарий регистрации нового обращения."""
     show_categories(categories)
     category_id = input_int("Идентификатор категории: ")
-    if not categories_module.is_category_active(categories, category_id):
+    category = categories_module.find_category(categories, category_id)
+    if category is None or not category.is_available():
         print("Выбранная категория недоступна для новых обращений.")
         return
 
@@ -57,20 +57,22 @@ def register_inquiry(inquiries, users, categories, statuses) -> None:
 
     print("Пользователи:")
     for user in users:
-        print(f"  {user['id']}. {user['name']}")
+        print(f"  {user.id}. {user.name}")
     user_id = input_int("Идентификатор пользователя: ")
-    if users_module.find_user(users, user_id) is None:
+    author = users_module.find_user(users, user_id)
+    if author is None:
         print("Пользователь не найден.")
         return
 
+    new_status = statuses_module.find_status(statuses, "new")
     try:
         inquiry = inquiries_module.add_inquiry(
-            inquiries, subject, text, category_id, user_id,
+            inquiries, subject, text, category, new_status, author,
         )
     except ValueError as error:
         print(f"Не удалось зарегистрировать обращение: {error}")
         return
-    print(f"Обращение #{inquiry['id']} зарегистрировано.")
+    print(f"Обращение #{inquiry.id} зарегистрировано.")
 
 
 def change_inquiry_status(inquiries, statuses) -> None:
@@ -81,16 +83,17 @@ def change_inquiry_status(inquiries, statuses) -> None:
         return
     print("Доступные статусы:")
     for status in statuses_module.list_statuses(statuses):
-        print(f"  {status['code']} — {status['title']}")
+        print(f"  {status.code} — {status.title}")
     code = input_text("Код нового статуса: ").lower()
-    if statuses_module.find_status(statuses, code) is None:
+    status = statuses_module.find_status(statuses, code)
+    if status is None:
         print("Такого статуса нет.")
         return
-    inquiries_module.change_status(inquiries, inquiry_id, code)
+    inquiries_module.change_status(inquiries, inquiry_id, status)
     print("Статус обновлён.")
 
 
-def filter_by_category(inquiries, users, categories, statuses) -> None:
+def filter_by_category(inquiries, categories) -> None:
     """Сценарий отбора обращений по категории."""
     show_categories(categories)
     category_id = input_int("Идентификатор категории: ")
@@ -101,7 +104,7 @@ def filter_by_category(inquiries, users, categories, statuses) -> None:
         print("В этой категории обращений нет.")
         return
     for inquiry in selected:
-        print_inquiry(inquiry, users, categories, statuses)
+        print_inquiry(inquiry)
 
 
 def save_all(users, categories, statuses, inquiries) -> None:
@@ -127,20 +130,20 @@ def main() -> None:
     users = storage.load_users()
     categories = storage.load_categories()
     statuses = storage.load_statuses()
-    inquiries = storage.load_inquiries()
+    inquiries = storage.load_inquiries(categories, statuses, users)
 
     while True:
         print(MENU)
         choice = input_text("Выберите пункт меню: ")
 
         if choice == "1":
-            show_inquiries(inquiries, users, categories, statuses)
+            show_inquiries(inquiries)
         elif choice == "2":
             register_inquiry(inquiries, users, categories, statuses)
         elif choice == "3":
             change_inquiry_status(inquiries, statuses)
         elif choice == "4":
-            filter_by_category(inquiries, users, categories, statuses)
+            filter_by_category(inquiries, categories)
         elif choice == "5":
             show_categories(categories)
         elif choice == "0":

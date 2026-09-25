@@ -1,4 +1,4 @@
-"""Тесты операций над категориями (ПР2)."""
+"""Тесты операций над категориями (ПР3, объектная модель)."""
 
 import os
 import sys
@@ -6,20 +6,22 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import categories as categories_module  # noqa: E402
+from models import Category  # noqa: E402
 
 
 def make_categories():
     return [
-        {"id": 1, "name": "Техническая проблема", "is_active": True},
-        {"id": 2, "name": "Прочее", "is_active": False},
+        Category(1, "Техническая проблема", True),
+        Category(2, "Прочее", False),
     ]
 
 
 def test_add_category_assigns_next_id():
     categories = make_categories()
     created = categories_module.add_category(categories, "Оплата")
-    assert created["id"] == 3
-    assert created["is_active"] is True
+    assert isinstance(created, Category)
+    assert created.id == 3
+    assert created.is_active is True
     assert len(categories) == 3
 
 
@@ -43,10 +45,10 @@ def test_is_category_active():
 def test_filter_active_categories():
     categories = make_categories()
     active = categories_module.filter_active_categories(categories)
-    assert [category["id"] for category in active] == [1]
+    assert [category.id for category in active] == [1]
 
 
 def test_sort_categories_by_name():
     categories = make_categories()
-    names = [c["name"] for c in categories_module.sort_categories(categories)]
+    names = [c.name for c in categories_module.sort_categories(categories)]
     assert names == ["Прочее", "Техническая проблема"]
