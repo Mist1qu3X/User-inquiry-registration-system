@@ -4,6 +4,24 @@
 не введёт корректное значение, и позволяют отменить ввод пустой строкой.
 """
 
+import os
+import sys
+
+
+def setup_console() -> None:
+    """Настроить консоль на UTF-8, чтобы русский текст читался без «кракозябр».
+
+    В Windows дополнительно переключает кодовую страницу консоли на 65001.
+    Все возможные ошибки перенастройки безопасно игнорируются.
+    """
+    if os.name == "nt":
+        os.system("chcp 65001 > nul")
+    for stream in (sys.stdout, sys.stdin):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError, OSError):
+            pass
+
 
 def input_text(prompt: str, allow_empty: bool = False) -> str:
     """Прочитать строку. При ``allow_empty=False`` не принимает пустой ввод."""

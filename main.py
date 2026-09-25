@@ -13,7 +13,7 @@ import categories as categories_module
 import inquiries as inquiries_module
 import statuses as statuses_module
 import storage
-from utils import input_text
+from utils import input_text, setup_console
 
 LINE = "-" * 52
 
@@ -64,12 +64,14 @@ def show_inquiries(inquiries) -> None:
         print(LINE)
 
 
-def show_categories(categories) -> None:
-    """Показать список категорий и их доступность."""
+def show_categories(categories, inquiries) -> None:
+    """Показать список категорий, их доступность и число обращений."""
     print("Категории обращений:")
     for category in categories_module.sort_categories(categories):
         mark = "открыта" if category.is_active else "закрыта"
-        print(f"  • {category.name} ({mark})")
+        count = len(inquiries_module.filter_inquiries_by_category(
+            inquiries, category.id))
+        print(f"  - {category.name} ({mark}); обращений: {count}")
 
 
 def register_inquiry(inquiries, users, categories, statuses) -> None:
@@ -140,12 +142,19 @@ def change_inquiry_status(inquiries, statuses) -> None:
           f"{status.title}.")
 
 
+def category_label(inquiries, category) -> str:
+    """Подпись категории для меню выбора: название и число обращений."""
+    count = len(inquiries_module.filter_inquiries_by_category(
+        inquiries, category.id))
+    return f"{category.name} (обращений: {count})"
+
+
 def filter_by_category(inquiries, categories) -> None:
     """Сценарий отбора обращений по выбранной категории."""
     category = choose(
         "Выберите категорию для просмотра:",
         categories_module.sort_categories(categories),
-        lambda c: c.name,
+        lambda c: category_label(inquiries, c),
     )
     if category is None:
         print("Действие отменено.")
@@ -154,9 +163,9 @@ def filter_by_category(inquiries, categories) -> None:
         inquiries, category.id,
     )
     if not selected:
-        print(f"В категории «{category.name}» обращений нет.")
+        print(f"В категории «{category.name}» пока нет обращений.")
         return
-    print(f"Обращения в категории «{category.name}»:")
+    print(f"Обращения в категории «{category.name}» (всего {len(selected)}):")
     print(LINE)
     for inquiry in inquiries_module.sort_inquiries_by_date(selected):
         print_inquiry(inquiry)
@@ -172,19 +181,19 @@ def save_all(users, categories, statuses, inquiries) -> None:
 
 
 MENU = """
-╔══════════════════════════════════════════════════╗
-║   InquiryDesk — учёт обращений пользователей       ║
-╠══════════════════════════════════════════════════╣
-║   1  Показать все обращения                        ║
-║   2  Зарегистрировать новое обращение              ║
-║   3  Изменить статус обращения                     ║
-║   4  Показать обращения выбранной категории        ║
-║   5  Показать категории                            ║
-║   0  Выход (данные сохранятся автоматически)       ║
-╚══════════════════════════════════════════════════╝"""
+==================  ГЛАВНОЕ МЕНЮ  ==================
+  1 - Показать все обращения
+  2 - Зарегистрировать новое обращение
+  3 - Изменить статус обращения
+  4 - Показать обращения выбранной категории
+  5 - Показать категории
+  0 - Выход (данные сохранятся автоматически)
+==================================================="""
 
 
 def main() -> None:
+    setup_console()
+
     users = storage.load_users()
     categories = storage.load_categories()
     statuses = storage.load_statuses()
@@ -196,7 +205,7 @@ def main() -> None:
 
     while True:
         print(MENU)
-        choice = input_text("Что сделать? Введите номер пункта: ")
+        choice = input_text("Ваш выбор (номер пункта меню): ")
         print()
 
         if choice == "1":
@@ -208,13 +217,13 @@ def main() -> None:
         elif choice == "4":
             filter_by_category(inquiries, categories)
         elif choice == "5":
-            show_categories(categories)
+            show_categories(categories, inquiries)
         elif choice == "0":
             save_all(users, categories, statuses, inquiries)
             print("Данные сохранены. До свидания!")
             break
         else:
-            print("Нет такого пункта меню. Введите число от 0 до 5.")
+            print(f"Пункта «{choice}» нет в меню. Введите число от 0 до 5.")
 
 
 if __name__ == "__main__":
