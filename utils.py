@@ -9,18 +9,22 @@ import sys
 
 
 def setup_console() -> None:
-    """Настроить консоль на UTF-8, чтобы русский текст читался без «кракозябр».
+    """Включить UTF-8 для ВЫВОДА в консоль, чтобы русский текст был читаемым.
 
-    В Windows дополнительно переключает кодовую страницу консоли на 65001.
-    Все возможные ошибки перенастройки безопасно игнорируются.
+    Настраивается только вывод: поток ввода (stdin) намеренно не трогается,
+    иначе в консоли Windows функция ``input()`` может читать введённые символы
+    с ошибками. Все возможные сбои настройки безопасно игнорируются.
     """
     if os.name == "nt":
-        os.system("chcp 65001 > nul")
-    for stream in (sys.stdout, sys.stdin):
         try:
-            stream.reconfigure(encoding="utf-8")
-        except (AttributeError, ValueError, OSError):
+            import ctypes
+            ctypes.windll.kernel32.SetConsoleOutputCP(65001)
+        except (OSError, AttributeError):
             pass
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except (AttributeError, ValueError, OSError):
+        pass
 
 
 def input_text(prompt: str, allow_empty: bool = False) -> str:
