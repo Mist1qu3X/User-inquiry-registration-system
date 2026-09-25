@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "name": "Техническая проблема",
+    "is_active": true
+  },
+  {
+    "id": 2,
+    "name": "Оплата и биллинг",
+    "is_active": true
+  },
+  {
+    "id": 3,
+    "name": "Предложение по улучшению",
+    "is_active": true
+  },
+  {
+    "id": 4,
+    "name": "Прочее",
+    "is_active": false
+  }
+]

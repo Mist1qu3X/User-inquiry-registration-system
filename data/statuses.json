@@ -1,0 +1,27 @@
+[
+  {
+    "code": "new",
+    "title": "Новое",
+    "is_final": false
+  },
+  {
+    "code": "in_progress",
+    "title": "В работе",
+    "is_final": false
+  },
+  {
+    "code": "resolved",
+    "title": "Решено",
+    "is_final": true
+  },
+  {
+    "code": "closed",
+    "title": "Закрыто",
+    "is_final": true
+  },
+  {
+    "code": "rejected",
+    "title": "Отклонено",
+    "is_final": true
+  }
+]
