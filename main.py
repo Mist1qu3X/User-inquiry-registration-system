@@ -13,6 +13,7 @@ import categories as categories_module
 import inquiries as inquiries_module
 import statuses as statuses_module
 import storage
+import users as users_module
 from utils import input_text, setup_console
 
 LINE = "-" * 52
@@ -95,10 +96,8 @@ def register_inquiry(inquiries, users, categories, statuses) -> None:
     text = input_text("Шаг 3. Подробное описание (можно пропустить): ",
                       allow_empty=True)
 
-    author = choose("Шаг 4. Кто автор обращения?", users, lambda u: u.name)
-    if author is None:
-        print("Регистрация отменена.")
-        return
+    name = input_text("Шаг 4. Представьтесь — введите ваше имя: ")
+    author = users_module.get_or_create_user(users, name)
 
     new_status = statuses_module.find_status(statuses, "new")
     try:

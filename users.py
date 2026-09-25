@@ -26,6 +26,23 @@ def add_user(users: list, name: str, email: str) -> User:
     return user
 
 
+def get_or_create_user(users: list, name: str) -> User:
+    """Найти пользователя по имени или создать нового (только с именем).
+
+    Сравнение имён выполняется без учёта регистра и лишних пробелов, поэтому
+    повторные обращения одного человека привязываются к тому же пользователю.
+    """
+    name = name.strip()
+    if not name:
+        raise ValueError("Имя не может быть пустым.")
+    for user in users:
+        if user.name.strip().lower() == name.lower():
+            return user
+    user = User(next_user_id(users), name)
+    users.append(user)
+    return user
+
+
 def find_user(users: list, user_id: int):
     """Найти пользователя по идентификатору или вернуть ``None``."""
     for user in users:

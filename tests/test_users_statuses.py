@@ -48,6 +48,31 @@ def test_find_users_by_substring():
     assert [user.id for user in found] == [2]
 
 
+def test_get_or_create_user_creates_new_by_name():
+    users = make_users()
+    created = users_module.get_or_create_user(users, "Пётр")
+    assert created.id == 3
+    assert created.name == "Пётр"
+    assert len(users) == 3
+
+
+def test_get_or_create_user_reuses_existing():
+    users = make_users()
+    same = users_module.get_or_create_user(users, "  иван петров  ")
+    assert same.id == 1
+    assert len(users) == 2
+
+
+def test_get_or_create_user_rejects_empty():
+    users = make_users()
+    try:
+        users_module.get_or_create_user(users, "   ")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Ожидалось исключение ValueError")
+
+
 def test_is_final_status():
     statuses = make_statuses()
     assert statuses_module.is_final_status(statuses, "closed") is True
