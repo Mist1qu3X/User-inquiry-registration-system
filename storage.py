@@ -75,3 +75,17 @@ def load_inquiries(categories: list, statuses: list, users: list) -> list:
 
 def save_inquiries(inquiries: list) -> None:
     _save_raw(INQUIRIES_FILE, [inquiry.to_data() for inquiry in inquiries])
+
+
+def load_all() -> tuple:
+    """Загрузить все коллекции проекта (добавлена в ПР5).
+
+    Возвращает кортеж ``(users, categories, statuses, inquiries)``; ссылки
+    обращений на категории, статусы и авторов уже разрешены в объекты.
+    Используется view-функциями Django, чтобы не повторять загрузку.
+    """
+    users = load_users()
+    categories = load_categories()
+    statuses = load_statuses()
+    inquiries = load_inquiries(categories, statuses, users)
+    return users, categories, statuses, inquiries
