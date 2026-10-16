@@ -26,7 +26,9 @@ def make_statuses():
 
 def test_add_user_and_get_name():
     users = make_users()
-    created = users_module.add_user(users, "Пётр Иванов", "P.Ivanov@Example.com")
+    created = users_module.add_user(
+        users, "Пётр Иванов", "P.Ivanov@Example.com",
+    )
     assert created.id == 3
     assert created.email == "p.ivanov@example.com"
     assert users_module.get_user_name(users, 3) == "Пётр Иванов"

@@ -9,7 +9,9 @@ from models import Category, Inquiry, Status, User  # noqa: E402
 
 
 def test_category_roundtrip_and_str():
-    category = Category.from_data({"id": 1, "name": "Оплата", "is_active": True})
+    category = Category.from_data(
+        {"id": 1, "name": "Оплата", "is_active": True}
+    )
     assert category.is_available() is True
     assert "Оплата" in str(category)
     assert category.to_data() == {"id": 1, "name": "Оплата", "is_active": True}

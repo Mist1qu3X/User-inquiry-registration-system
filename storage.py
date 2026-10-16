@@ -66,7 +66,9 @@ def load_inquiries(categories: list, statuses: list, users: list) -> list:
     statuses_by_code = {status.code: status for status in statuses}
     users_by_id = {user.id: user for user in users}
     return [
-        Inquiry.from_data(item, categories_by_id, statuses_by_code, users_by_id)
+        Inquiry.from_data(
+            item, categories_by_id, statuses_by_code, users_by_id,
+        )
         for item in _load_raw(INQUIRIES_FILE)
     ]
 

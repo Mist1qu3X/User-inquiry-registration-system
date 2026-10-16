@@ -13,7 +13,8 @@ def next_category_id(categories: list) -> int:
     return max(category.id for category in categories) + 1
 
 
-def add_category(categories: list, name: str, is_active: bool = True) -> Category:
+def add_category(categories: list, name: str,
+                 is_active: bool = True) -> Category:
     """Создать категорию, добавить её в список и вернуть объект."""
     name = name.strip()
     if not name:
